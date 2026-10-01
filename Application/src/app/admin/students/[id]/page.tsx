@@ -5,6 +5,8 @@ import { Fragment, useMemo, useState } from "react";
 import useSWR from "swr";
 import { ArrowLeft, Download, LogIn, LogOut, Smartphone, ShieldAlert, Mail, Phone, Home, GraduationCap, CalendarClock } from "lucide-react";
 import { ConfirmDialog, ErrorNote, Photo, StatusChip, fetcher, fmt, postJSON } from "@/components/ui";
+import DeleteStudent from "@/components/DeleteStudent";
+import { useRouter } from "next/navigation";
 
 type Data = {
   student: {
@@ -56,6 +58,7 @@ const REASONS: Record<string, string> = {
 const dayKey = (d: string) => new Date(d).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "short", day: "2-digit", month: "short", year: "numeric" });
 
 export default function StudentProfile({ params }: { params: { id: string } }) {
+  const router = useRouter();
   const { data, error, mutate } = useSWR<Data>(`/api/admin/students/${params.id}`, fetcher);
   const [action, setAction] = useState<"block" | "unblock" | null>(null);
   const [reason, setReason] = useState("");
@@ -138,6 +141,7 @@ export default function StudentProfile({ params }: { params: { id: string } }) {
           <button className="btn-outline" onClick={exportCsv} disabled={!data.movements.length}>
             <Download className="h-4 w-4" /> History CSV
           </button>
+          {s.appRole === "STUDENT" && <DeleteStudent student={s} label="Delete student" onDeleted={() => router.replace("/admin/students")} />}
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import useSWR from "swr";
 import Link from "next/link";
 import { ChevronRight, Search } from "lucide-react";
 import { ConfirmDialog, ErrorNote, Photo, StatusChip, fetcher, fmt, postJSON } from "@/components/ui";
+import DeleteStudent from "@/components/DeleteStudent";
 
 type P = {
   id: string;
@@ -21,6 +22,8 @@ type P = {
   profileComplete: boolean;
   photoUrl: string | null;
   pass: { status: string; reason: string | null; phoneEnrolled: boolean } | null;
+  appRole: "STUDENT" | "GUARD" | "ADMIN";
+  isMe: boolean;
 };
 
 export default function StudentsPage() {
@@ -61,7 +64,10 @@ export default function StudentsPage() {
             <div className="flex items-center gap-3">
               <Photo src={p.photoUrl} alt="" className="h-14 w-14 shrink-0" />
               <div className="min-w-0">
-                <div className="truncate font-bold">{p.fullName}</div>
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate font-bold">{p.fullName}</span>
+                  {p.appRole !== "STUDENT" && <span className="chip shrink-0 border-violet-300 bg-violet-50 text-violet-800">{p.isMe ? "YOU · " : ""}{p.appRole}</span>}
+                </div>
                 <div className="truncate text-xs text-slate-500">{p.email}</div>
               </div>
             </div>
@@ -82,16 +88,21 @@ export default function StudentsPage() {
               View full profile <ChevronRight className="h-3.5 w-3.5" />
             </div>
             </Link>
-            {p.pass?.status === "ACTIVE" && (
-              <button className="btn-outline w-full text-xs text-deny" onClick={() => setTarget({ p, action: "block" })}>
-                Block pass
-              </button>
-            )}
-            {p.pass?.status === "BLOCKED" && (
-              <button className="btn-outline w-full text-xs" onClick={() => setTarget({ p, action: "unblock" })}>
-                Unblock ({p.pass.reason})
-              </button>
-            )}
+            <div className="flex gap-2">
+              {p.pass?.status === "ACTIVE" && (
+                <button className="btn-outline flex-1 text-xs text-deny" onClick={() => setTarget({ p, action: "block" })}>
+                  Block pass
+                </button>
+              )}
+              {p.pass?.status === "BLOCKED" && (
+                <button className="btn-outline min-w-0 flex-1 truncate text-xs" onClick={() => setTarget({ p, action: "unblock" })}>
+                  Unblock ({p.pass.reason})
+                </button>
+              )}
+              {p.appRole === "STUDENT" && !p.isMe && (
+                <DeleteStudent student={p} onDeleted={() => mutate()} className={`text-xs ${p.pass?.status === "ACTIVE" || p.pass?.status === "BLOCKED" ? "" : "flex-1"}`} />
+              )}
+            </div>
           </div>
         ))}
       </div>

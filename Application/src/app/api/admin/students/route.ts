@@ -4,12 +4,13 @@ import { prisma } from "@/lib/db";
 import { api, ApiError, requireAdmin } from "@/lib/rbac";
 import { logAdmin } from "@/lib/audit";
 import { photoUrl } from "@/lib/photo";
+import { CONFIG } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
 // Student lookup + block/unblock (e.g. disciplinary hold, suspected misuse).
 export const GET = api(async (req: Request) => {
-  await requireAdmin();
+  const me = await requireAdmin();
   const q = (new URL(req.url).searchParams.get("q") ?? "").trim();
   const people = await prisma.identity.findMany({
     where: q ? { OR: [{ fullName: { contains: q, mode: "insensitive" } }, { rollNo: { contains: q } }, { email: { contains: q, mode: "insensitive" } }] } : {},
@@ -20,8 +21,13 @@ export const GET = api(async (req: Request) => {
       credentials: { orderBy: { createdAt: "desc" }, take: 1, include: { _count: { select: { devices: { where: { revokedAt: null } } } } } },
     },
   });
+  // Role per person in one query (guards/admins can't be deleted from here).
+  const grants = new Map((await prisma.accessGrant.findMany({ where: { email: { in: people.map((p) => p.email) } } })).map((g) => [g.email, g.role]));
+  const roleOf = (email: string) => (CONFIG.ADMIN_EMAILS.includes(email) ? "ADMIN" : (grants.get(email) ?? "STUDENT"));
   return NextResponse.json({
     people: people.map((p) => ({
+      appRole: roleOf(p.email),
+      isMe: p.id === me.id,
       id: p.id,
       fullName: p.fullName,
       email: p.email,
