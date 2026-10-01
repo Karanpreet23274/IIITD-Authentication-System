@@ -1,0 +1,2 @@
+// Runs in <head> before the page paints: applies the saved theme and text size.
+export const THEME_INIT_SCRIPT = `(function(){try{var e=document.documentElement;var t=localStorage.getItem("theme")||"system";var d=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)e.classList.add("dark");var s=localStorage.getItem("textSize");if(s==="large"||s==="xl")e.dataset.text=s;}catch(_){}})();`;

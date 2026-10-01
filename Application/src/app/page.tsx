@@ -9,7 +9,7 @@ export default async function Home() {
   if (u) redirect(homeFor(u));
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-teal-50 to-white">
+    <main className="min-h-screen bg-gradient-to-b from-teal-50 to-[rgb(var(--bg))]">
       <div className="mx-auto max-w-5xl px-4 py-10 sm:py-16">
         <div className="flex items-center gap-2 text-brand">
           <ShieldCheck className="h-8 w-8" />
