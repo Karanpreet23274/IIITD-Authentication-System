@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { logAdmin } from "@/lib/audit";
 import { api, ApiError, requireAdmin } from "@/lib/rbac";
 import { photoUrl } from "@/lib/photo";
 import { roleFor } from "@/lib/auth";
@@ -69,6 +71,30 @@ export const GET = api(async (_req: Request, { params }: { params: { id: string 
     rejected: rejected.map((r) => ({ seq: r.seq, ts: r.ts, gate: gates[r.gateId ?? ""] ?? r.gateId, decision: r.decision, reason: r.reasonCode })),
     alerts: alerts.map((a) => ({ id: a.id, ts: a.ts, kind: a.kind, message: a.message, status: a.status })),
   });
+});
+
+const DeleteBody = z.object({ confirm: z.literal("DELETE"), reason: z.string().trim().min(3, "Enter a reason").max(120) });
+
+// Permanently delete a student account (right to erasure). Cascades to photo, phone keys,
+// passes and register movements. The hash-chained scan log is NOT touched: it only holds
+// pseudonyms, and once the credential row is gone those can't be linked back to the person.
+export const DELETE = api(async (req: Request, { params }: { params: { id: string } }) => {
+  const u = await requireAdmin();
+  const { reason } = DeleteBody.parse(await req.json());
+  if (params.id === u.id) throw new ApiError(400, "You can't delete your own account");
+  const p = await prisma.identity.findUnique({ where: { id: params.id }, include: { credentials: { select: { pseudonym: true } } } });
+  if (!p) throw new ApiError(404, "Student not found");
+  if ((await roleFor(p.email)) !== "STUDENT") throw new ApiError(409, "This person is a guard or admin. Remove them from Guards & admins first.");
+
+  const pseudonyms = p.credentials.map((c) => c.pseudonym);
+  const movements = await prisma.movement.count({ where: { identityId: p.id } });
+  await prisma.$transaction([
+    prisma.alert.deleteMany({ where: { pseudonym: { in: pseudonyms } } }),
+    prisma.identity.delete({ where: { id: p.id } }), // cascades: photo, credentials → devices, pass sessions, movements
+  ]);
+  // No name, e-mail or roll no. in the log entry — only counts and the reason.
+  await logAdmin(u.id, "STUDENT_DELETED", p.id, { reason, credentials: pseudonyms.length, movements });
+  return NextResponse.json({ ok: true, deleted: { movements, credentials: pseudonyms.length } });
 });
 
 /** "Android · Chrome" style label from a user-agent string (no fingerprinting detail). */
