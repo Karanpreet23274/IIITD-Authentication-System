@@ -44,23 +44,23 @@ export default function RegisterPage() {
         </a>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="card py-3 text-center">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="card px-2 py-3 text-center">
           <div className="text-2xl font-bold text-allow">{data?.counts.in ?? "–"}</div>
           <div className="text-xs text-slate-500">entries</div>
         </div>
-        <div className="card py-3 text-center">
+        <div className="card px-2 py-3 text-center">
           <div className="text-2xl font-bold text-sky-700">{data?.counts.out ?? "–"}</div>
           <div className="text-xs text-slate-500">exits</div>
         </div>
-        <div className="card py-3 text-center">
+        <div className="card px-2 py-3 text-center">
           <div className="text-2xl font-bold">{data?.counts.onCampus ?? "–"}</div>
           <div className="text-xs text-slate-500">on campus now</div>
         </div>
       </div>
 
-      <div className="card grid gap-3 sm:grid-cols-[1fr_auto_auto]">
-        <div className="relative">
+      <div className="card grid grid-cols-2 gap-3 sm:grid-cols-[1fr_auto_auto]">
+        <div className="relative col-span-2 sm:col-span-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
           <input className="input pl-9" placeholder="Search name, roll no. or e-mail" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
@@ -72,7 +72,45 @@ export default function RegisterPage() {
         </select>
       </div>
 
-      <div className="card">
+      {/* Phones: one card per record */}
+      <ul className="space-y-2 sm:hidden">
+        {data?.rows.map((r) => (
+          <li key={r.id} className="card p-3">
+            <button className="flex w-full items-center gap-3 text-left" onClick={() => setOpen(open === r.id ? null : r.id)} aria-expanded={open === r.id}>
+              {r.direction === "IN" ? (
+                <span className="chip shrink-0 border-green-300 bg-green-50 text-green-800">
+                  <LogIn className="h-3 w-3" /> ENTRY
+                </span>
+              ) : (
+                <span className="chip shrink-0 border-sky-300 bg-sky-50 text-sky-800">
+                  <LogOut className="h-3 w-3" /> EXIT
+                </span>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-semibold">{r.student.fullName}</div>
+                <div className="truncate text-xs text-slate-500">
+                  {r.student.rollNo} · {r.student.programme} · {r.gate}
+                  {r.offline && " · offline"}
+                </div>
+              </div>
+              <span className="shrink-0 text-sm tabular-nums text-slate-600">{fmt(r.ts, "time")}</span>
+            </button>
+            {open === r.id && (
+              <div className="mt-3 flex items-center gap-3 border-t border-slate-100 pt-3 text-sm">
+                <Photo src={r.student.photoUrl} alt="" className="h-14 w-14 shrink-0" />
+                <div className="min-w-0">
+                  <div>{r.student.residence === "HOSTELLER" ? `Hosteller · ${r.student.hostelRoom ?? ""}` : "Day scholar"}</div>
+                  <div>Mobile: {r.student.phone ?? "—"}</div>
+                  <div className="truncate text-xs text-slate-500">Recorded by {r.guard}</div>
+                </div>
+              </div>
+            )}
+          </li>
+        ))}
+        {data && !data.rows.length && <li className="card py-8 text-center text-slate-500">No records for this day.</li>}
+      </ul>
+
+      <div className="card hidden sm:block">
         <div className="table-wrap">
           <table className="tbl">
             <thead>
