@@ -174,7 +174,27 @@ function Scanner({ gateId, onChangeGate }: { gateId: string; onChangeGate: () =>
                 {busy ? <Loader2 className="h-10 w-10 animate-spin text-brand" /> : <div className="text-2xl font-semibold text-slate-700">Scan the student&apos;s QR</div>}
                 <div className="mt-1 text-sm text-slate-500">Only a live QR from the student&apos;s own phone is accepted</div>
               </div>
-              <QrScanner onScan={handleScan} disabled={busy || !!result || offlineExpired} />
+              <QrScanner
+                onScan={handleScan}
+                disabled={busy || !!result || offlineExpired}
+                busy={busy}
+                controls={
+                  <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Record as">
+                    {(["AUTO", "IN", "OUT"] as const).map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        role="radio"
+                        aria-checked={mode === m}
+                        onClick={() => setMode(m)}
+                        className={`rounded-xl py-2.5 text-sm font-semibold ${mode === m ? "bg-white text-black" : "border border-white/30 text-white"}`}
+                      >
+                        {m === "AUTO" ? "Auto" : m === "IN" ? "Entry" : "Exit"}
+                      </button>
+                    ))}
+                  </div>
+                }
+              />
             </div>
           )}
         </div>
