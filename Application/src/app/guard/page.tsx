@@ -52,7 +52,6 @@ function Scanner({ gateId, onChangeGate }: { gateId: string; onChangeGate: () =>
 
   useEffect(() => {
     const t = setInterval(() => setClock(Date.now()), 1000);
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
     return () => clearInterval(t);
   }, []);
 

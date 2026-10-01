@@ -4,6 +4,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { ShieldCheck } from "lucide-react";
 import { ErrorNote } from "@/components/ui";
+import { InstallAppCard } from "@/components/Pwa";
 
 const ERRORS: Record<string, string> = {
   domain: "Only IIITD accounts (@iiitd.ac.in) can sign in. Please choose your college account.",
@@ -59,6 +60,9 @@ export default function LoginForms({
               </div>
             </div>
           )}
+        </div>
+        <div className="mt-4">
+          <InstallAppCard compact />
         </div>
       </div>
     </main>

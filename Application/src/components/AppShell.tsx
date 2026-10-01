@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { clearSavedPages } from "./Pwa";
 import { LogOut, ShieldCheck } from "lucide-react";
 
 export type NavItem = { href: string; label: string };
@@ -36,7 +37,10 @@ export default function AppShell({
             {subtitle && <div className="truncate text-xs text-slate-500">{subtitle}</div>}
           </div>
           {badge}
-          <button onClick={() => signOut({ callbackUrl: "/login" })} className="btn-outline px-3 py-2" aria-label="Sign out">
+          <button onClick={() => {
+              clearSavedPages();
+              signOut({ callbackUrl: "/login" });
+            }} className="btn-outline px-3 py-2" aria-label="Sign out">
             <LogOut className="h-4 w-4" />
             <span className="hidden sm:inline">Sign out</span>
           </button>
