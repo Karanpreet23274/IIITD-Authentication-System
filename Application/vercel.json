@@ -1,0 +1,7 @@
+{
+  "framework": "nextjs",
+  "crons": [
+    { "path": "/api/cron/checkpoint", "schedule": "0 18 * * *" },
+    { "path": "/api/cron/retention", "schedule": "30 20 * * *" }
+  ]
+}

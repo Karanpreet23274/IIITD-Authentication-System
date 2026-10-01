@@ -1,0 +1,52 @@
+{
+  "name": "iiitd-gate-entry",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest run",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "keys": "tsx scripts/gen-keys.ts",
+    "postinstall": "prisma generate",
+    "e2e": "tsx --env-file=.env scripts/e2e-smoke.ts",
+    "db:seed:demo": "prisma db seed -- --demo",
+    "vercel-build": "prisma generate && prisma db push --skip-generate && tsx prisma/seed.ts && next build"
+  },
+  "dependencies": {
+    "@noble/curves": "^1.9.7",
+    "@noble/hashes": "^1.8.0",
+    "@prisma/client": "^5.22.0",
+    "html5-qrcode": "^2.3.8",
+    "idb-keyval": "^6.2.2",
+    "lucide-react": "^0.468.0",
+    "next": "^14.2.35",
+    "next-auth": "^4.24.11",
+    "qrcode.react": "^4.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "swr": "^2.3.6",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.6",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.35",
+    "postcss": "^8.4.49",
+    "prisma": "^5.22.0",
+    "tailwindcss": "^3.4.14",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

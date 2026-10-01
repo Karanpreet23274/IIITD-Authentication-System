@@ -1,0 +1,205 @@
+// IIITD Gate Entry — data model.
+// Everyone signs in with an @iiitd.ac.in Google account. Whether a signed-in person
+// gets the Student app or the Guard app is decided by the AccessGrant list.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum AppRole {
+  STUDENT
+  GUARD
+  ADMIN
+}
+
+enum CredStatus {
+  ACTIVE
+  BLOCKED
+  REVOKED
+}
+
+enum Direction {
+  IN
+  OUT
+}
+
+enum Decision {
+  ALLOW
+  DENY_NOT_RECOGNISED
+  DENY_BLOCKED
+  DENY_SUSPICIOUS
+}
+
+enum Residence {
+  HOSTELLER
+  DAY_SCHOLAR
+}
+
+enum LogKind {
+  ACCESS
+  ADMIN
+  SYSTEM
+}
+
+enum AlertStatus {
+  OPEN
+  ACK
+}
+
+// ---------- People ----------
+
+// One row per IIITD account. Name, e-mail and photo come from IIITD Google sign-in;
+// roll no. is derived from the e-mail; the rest is completed once by the student.
+model Identity {
+  id          String        @id @default(cuid())
+  email       String        @unique
+  fullName    String
+  firstName   String
+  rollNo      String?
+  programme   String?
+  batch       String?
+  residence   Residence?
+  hostelRoom  String?
+  phone       String?
+  profileAt   DateTime?
+  createdAt   DateTime      @default(now())
+  lastSeenAt  DateTime      @default(now())
+  presence    Direction?    // last recorded movement: IN = on campus, OUT = outside
+  presenceAt  DateTime?
+  photo       Photo?
+  credentials Credential[]
+  sessions    PassSession[]
+  movements   Movement[]
+}
+
+// Who gets the Guard app (or Admin page). Managed by admins; ADMIN_EMAILS env bootstraps.
+model AccessGrant {
+  email     String   @id
+  role      AppRole
+  addedBy   String
+  createdAt DateTime @default(now())
+}
+
+model Photo {
+  id         String   @id @default(cuid())
+  identityId String   @unique
+  identity   Identity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  mime       String
+  data       Bytes
+}
+
+// The student's phone credential. Private key never leaves the phone.
+model Credential {
+  id           String        @id @default(cuid())
+  identityId   String
+  identity     Identity      @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  pseudonym    String        @unique // used in the tamper-evident log instead of the name
+  status       CredStatus    @default(ACTIVE)
+  statusReason String?
+  revokedAt    DateTime?
+  createdAt    DateTime      @default(now())
+  devices      Device[]
+  sessions     PassSession[]
+}
+
+model Device {
+  id           String     @id @default(cuid())
+  credentialId String
+  credential   Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  publicKeyJwk Json
+  userAgent    String?
+  createdAt    DateTime   @default(now())
+  revokedAt    DateTime?
+}
+
+// A 5-minute live pass. The QR inside it rotates every 15 s and works once.
+model PassSession {
+  id           String     @id @default(cuid())
+  identityId   String
+  identity     Identity   @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  credentialId String
+  credential   Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  deviceId     String
+  createdAt    DateTime   @default(now())
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  usedAt       DateTime?
+}
+
+model UsedNonce {
+  nonce  String   @id
+  usedAt DateTime @default(now())
+}
+
+// ---------- Gates, register, audit ----------
+
+model Gate {
+  id            String    @id
+  name          String
+  enabled       Boolean   @default(true)
+  lastHeartbeat DateTime  @default(now())
+  display       Json?     // what the student-facing gate screen shows right now
+  displayAt     DateTime?
+}
+
+// The digital entry/exit register that replaces the paper register at the gate.
+model Movement {
+  id         String    @id @default(cuid())
+  identityId String
+  identity   Identity  @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  direction  Direction
+  gateId     String
+  guardEmail String
+  ts         DateTime  @default(now())
+  offline    Boolean   @default(false)
+  logSeq     Int?
+
+  @@index([ts])
+  @@index([identityId, ts])
+}
+
+// Append-only, hash-chained log of every scan decision and admin action.
+model LogEntry {
+  seq        Int        @id @default(autoincrement())
+  ts         DateTime   @default(now())
+  kind       LogKind
+  gateId     String?
+  pseudonym  String?
+  direction  Direction?
+  decision   Decision?
+  reasonCode String?
+  guardId    String?
+  flagged    Boolean    @default(false)
+  offline    Boolean    @default(false)
+  actorId    String?
+  action     String?
+  target     String?
+  detail     Json?
+  prevHash   String
+  hash       String     @unique
+}
+
+model LogCheckpoint {
+  id        String   @id @default(cuid())
+  ts        DateTime @default(now())
+  seq       Int
+  hash      String
+  signature String
+}
+
+model Alert {
+  id        String      @id @default(cuid())
+  ts        DateTime    @default(now())
+  gateId    String?
+  kind      String
+  pseudonym String?
+  message   String
+  status    AlertStatus @default(OPEN)
+  ackBy     String?
+}
