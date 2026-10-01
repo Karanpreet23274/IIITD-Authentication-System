@@ -12,14 +12,19 @@ const VIEWS: Record<ViewMode, { label: string; icon: LucideIcon }> = {
   table: { label: "Table", icon: Table2 },
 };
 
-/** View choice for a page, remembered on this device. */
-export function useViewMode(key: string, fallback: ViewMode, allowed: ViewMode[]) {
+/**
+ * View choice for a page, remembered on this device. `narrowFallback` is used instead of
+ * `fallback` on phone-width screens until the person picks a view themselves.
+ */
+export function useViewMode(key: string, fallback: ViewMode, allowed: ViewMode[], narrowFallback?: ViewMode) {
   const [mode, setMode] = useState<ViewMode>(fallback);
   useEffect(() => {
+    let saved: ViewMode | null = null;
     try {
-      const v = localStorage.getItem(`view:${key}`) as ViewMode | null;
-      if (v && allowed.includes(v)) setMode(v);
+      saved = localStorage.getItem(`view:${key}`) as ViewMode | null;
     } catch {}
+    if (saved && allowed.includes(saved)) setMode(saved);
+    else if (narrowFallback && window.innerWidth < 640) setMode(narrowFallback);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
   const set = (v: ViewMode) => {
