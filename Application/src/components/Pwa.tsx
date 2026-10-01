@@ -16,7 +16,12 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
   const [isIos, setIsIos] = useState(false);
 
   useEffect(() => {
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+    if ("serviceWorker" in navigator) {
+      if (process.env.NODE_ENV === "production") navigator.serviceWorker.register("/sw.js").catch(() => {});
+      // In development, chunk file names don't change between edits, so a cache-first
+      // worker would serve stale code. Remove any worker left from a production test.
+      else navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister())).catch(() => {});
+    }
     const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
     setInstalled(standalone);
     setIsIos(/iphone|ipad|ipod/i.test(navigator.userAgent));
