@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { QrCode, ShieldCheck, ScanLine, ClipboardList } from "lucide-react";
 import { currentUser, homeFor } from "@/lib/rbac";
+import { InstallAppCard } from "@/components/Pwa";
 
 export default async function Home() {
   const u = await currentUser();
@@ -25,6 +26,9 @@ export default async function Home() {
           <Link href="/login" className="btn-primary btn-lg">
             Sign in with IIITD account
           </Link>
+        </div>
+        <div className="mt-4 max-w-md">
+          <InstallAppCard />
         </div>
         <div className="mt-12 grid gap-4 sm:grid-cols-3">
           {[

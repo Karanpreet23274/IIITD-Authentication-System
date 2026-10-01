@@ -8,6 +8,7 @@ import { QrCode, Smartphone, ChevronRight, LogIn, LogOut, Ban } from "lucide-rea
 import { useMe } from "@/lib/client/useMe";
 import { useDeviceState } from "@/lib/client/useDeviceState";
 import { Photo, fetcher, fmt } from "@/components/ui";
+import { InstallAppCard } from "@/components/Pwa";
 
 type Hist = { movements: { id: string; ts: string; direction: "IN" | "OUT"; gate: string }[] };
 
@@ -75,6 +76,7 @@ export default function StudentHome() {
             <ChevronRight />
           </Link>
         )}
+        <InstallAppCard compact />
         <p className="text-xs text-slate-500">No ID card or paper register needed: the guard scans your QR and your entry/exit is recorded digitally.</p>
       </div>
 

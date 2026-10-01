@@ -4,8 +4,18 @@ import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: "IIITD Gate Entry",
-  description: "Secure campus entry for IIIT-Delhi: live QR pass, guard verification, visitor passes and audit.",
+  description: "Live QR gate pass for IIIT-Delhi students, and the scanner for guards.",
+  applicationName: "IIITD Gate",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  appleWebApp: { capable: true, title: "IIITD Gate", statusBarStyle: "default" },
+  formatDetection: { telephone: false },
   robots: { index: false, follow: false },
 };
 
