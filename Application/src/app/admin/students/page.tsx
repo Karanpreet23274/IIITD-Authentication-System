@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { Search } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, Search } from "lucide-react";
 import { ConfirmDialog, ErrorNote, Photo, StatusChip, fetcher, fmt, postJSON } from "@/components/ui";
 
 type P = {
@@ -55,7 +56,8 @@ export default function StudentsPage() {
       </div>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {data?.people.map((p) => (
-          <div key={p.id} className="card space-y-2">
+          <div key={p.id} className="card space-y-2 transition hover:border-brand hover:shadow-md">
+            <Link href={`/admin/students/${p.id}`} className="block space-y-2" aria-label={`View ${p.fullName}'s profile`}>
             <div className="flex items-center gap-3">
               <Photo src={p.photoUrl} alt="" className="h-14 w-14 shrink-0" />
               <div className="min-w-0">
@@ -76,6 +78,10 @@ export default function StudentsPage() {
               {p.pass && !p.pass.phoneEnrolled && <span className="chip border-amber-300 bg-amber-50 text-amber-800">no phone</span>}
               {p.presenceAt && <span className="text-slate-500">since {fmt(p.presenceAt)}</span>}
             </div>
+            <div className="flex items-center justify-end gap-1 text-xs font-semibold text-brand">
+              View full profile <ChevronRight className="h-3.5 w-3.5" />
+            </div>
+            </Link>
             {p.pass?.status === "ACTIVE" && (
               <button className="btn-outline w-full text-xs text-deny" onClick={() => setTarget({ p, action: "block" })}>
                 Block pass
