@@ -4,6 +4,7 @@ import { useState } from "react";
 import useSWR from "swr";
 import { ShieldCheck, Trash2, UserPlus } from "lucide-react";
 import { ErrorNote, SuccessNote, fetcher, fmt, postJSON } from "@/components/ui";
+import ViewSwitcher, { useViewMode } from "@/components/ViewSwitcher";
 
 type Data = { grants: { email: string; role: "GUARD" | "ADMIN"; addedBy: string; createdAt: string }[]; bootstrapAdmins: string[] };
 
@@ -14,6 +15,7 @@ export default function AccessPage() {
   const [role, setRole] = useState<"GUARD" | "ADMIN">("GUARD");
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
+  const [view, setView] = useViewMode("guards", "table", ["list", "table"], "list");
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
@@ -41,10 +43,14 @@ export default function AccessPage() {
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
       <div className="card">
-        <h1 className="text-lg font-bold">Guards &amp; admins</h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-lg font-bold">Guards &amp; admins</h1>
+          <ViewSwitcher value={view} onChange={setView} views={["list", "table"]} />
+        </div>
         <p className="text-sm text-slate-500">Everyone signs in with their IIITD Google account. Only the accounts listed here get the Guard app.</p>
-        {/* Phones: simple list, remove button always visible */}
-        <ul className="mt-3 divide-y divide-slate-100 sm:hidden">
+        {/* List view: simple rows, remove button always visible */}
+        {view === "list" && (
+        <ul className="mt-3 divide-y divide-slate-100">
           {data?.bootstrapAdmins.map((e) => (
             <li key={"mb" + e} className="flex items-center gap-2 py-2.5">
               <div className="min-w-0 flex-1">
@@ -70,7 +76,9 @@ export default function AccessPage() {
           ))}
           {data && !data.grants.length && <li className="py-6 text-center text-sm text-slate-500">No guards yet. Add the guards&apos; IIITD e-mails.</li>}
         </ul>
-        <div className="table-wrap mt-3 hidden sm:block">
+        )}
+        {view === "table" && (
+        <div className="table-wrap mt-3">
           <table className="tbl">
             <thead>
               <tr>
@@ -117,6 +125,7 @@ export default function AccessPage() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
 
       <form className="card h-fit space-y-3" onSubmit={add}>
