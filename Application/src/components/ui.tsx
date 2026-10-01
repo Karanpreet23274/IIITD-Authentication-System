@@ -9,7 +9,7 @@ const toneClasses: Record<Tone, string> = {
   allow: "bg-allow text-white",
   warn: "bg-warn text-white",
   deny: "bg-deny text-white",
-  neutral: "bg-slate-600 text-white",
+  neutral: "bg-[#475569] text-white",
 };
 
 export function ToneIcon({ tone, className = "h-8 w-8" }: { tone: Tone; className?: string }) {
@@ -84,7 +84,7 @@ export function StatusChip({ status }: { status: string }) {
 }
 
 export function RoleChip({ role }: { role: string }) {
-  return <span className="chip border-slate-400 bg-white px-3 py-1 text-sm text-slate-800">{role}</span>;
+  return <span className="chip border-slate-400 bg-surface px-3 py-1 text-sm text-slate-800">{role}</span>;
 }
 
 export function ErrorNote({ msg }: { msg?: string | null }) {
@@ -132,8 +132,8 @@ export function ConfirmDialog({
   if (!open) return null;
   const ok = !typed || text.trim().toUpperCase() === typed;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true">
-      <div className="w-full max-w-md rounded-t-3xl bg-white p-5 shadow-xl sm:rounded-3xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true">
+      <div className="w-full max-w-md rounded-t-3xl bg-surface p-5 shadow-xl sm:rounded-3xl">
         <h2 className="text-lg font-bold">{title}</h2>
         <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-700">
           {effects.map((e) => (

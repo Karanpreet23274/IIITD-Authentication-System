@@ -53,7 +53,7 @@ export default function GuardResult({ view, onDone, onNotThisPerson }: { view: G
   return (
     <div className="space-y-4">
       {allow && view.direction ? (
-        <div className={`flex items-center gap-4 rounded-2xl px-5 py-5 text-white ${view.direction === "IN" ? "bg-allow" : "bg-sky-700"}`} role="status" aria-live="assertive">
+        <div className={`flex items-center gap-4 rounded-2xl px-5 py-5 text-white ${view.direction === "IN" ? "bg-allow" : "bg-exit"}`} role="status" aria-live="assertive">
           {view.direction === "IN" ? <LogIn className="h-12 w-12 shrink-0" /> : <LogOut className="h-12 w-12 shrink-0" />}
           <div>
             <div className="text-3xl font-extrabold sm:text-4xl">{view.direction === "IN" ? "ENTRY RECORDED" : "EXIT RECORDED"}</div>
@@ -107,7 +107,7 @@ export default function GuardResult({ view, onDone, onNotThisPerson }: { view: G
             </button>
             {view.movementId && (
               <button
-                className={`btn btn-lg ${armed ? "bg-deny text-white" : "border-2 border-deny bg-white text-deny"} sm:min-w-56`}
+                className={`btn btn-lg ${armed ? "bg-deny text-white" : "border-2 border-deny bg-surface text-deny"} sm:min-w-56`}
                 onClick={async () => {
                   if (!armed) return setArmed(true);
                   await onNotThisPerson(view.movementId!);

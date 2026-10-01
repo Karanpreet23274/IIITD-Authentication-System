@@ -1,18 +1,28 @@
+@import "./theme.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg: #f6f7f9;
-  --fg: #0f172a;
-}
-
 html,
 body {
-  background: var(--bg);
-  color: var(--fg);
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Text size setting (Settings → Text size). Everything is sized in rem, so it all scales. */
+html[data-text="large"] { font-size: 112.5%; }
+html[data-text="xl"] { font-size: 125%; }
+
+/* Dark mode: brand/status colours used as TEXT need to be lighter on dark backgrounds.
+   (As backgrounds behind white text they keep their normal shade.) */
+html.dark .text-brand { color: #2dd4bf; }
+html.dark .border-brand { border-color: #14b8a6; }
+html.dark .text-deny { color: #f87171; }
+html.dark .border-deny { border-color: #f87171; }
+html.dark .text-allow { color: #4ade80; }
+html.dark .text-warn { color: #fbbf24; }
+html.dark .text-exit { color: #38bdf8; }
 
 /* Grid cells must be allowed to shrink below their content's width, otherwise a wide
    table (which scrolls inside its own card) pushes the whole page wider than the phone
@@ -29,22 +39,22 @@ body {
     @apply btn bg-brand text-white hover:bg-brand-dark;
   }
   .btn-dark {
-    @apply btn bg-slate-900 text-white hover:bg-slate-700;
+    @apply btn bg-ink text-ink-fg hover:opacity-90;
   }
   .btn-outline {
-    @apply btn border border-slate-300 bg-white text-slate-800 hover:bg-slate-50;
+    @apply btn border border-slate-300 bg-surface text-slate-800 hover:bg-slate-50;
   }
   .btn-danger {
-    @apply btn bg-deny text-white hover:bg-red-800;
+    @apply btn bg-deny text-white hover:opacity-90;
   }
   .btn-lg {
     @apply px-6 py-4 text-base;
   }
   .card {
-    @apply rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5;
+    @apply rounded-2xl border border-slate-200 bg-surface p-4 shadow-sm sm:p-5;
   }
   .input {
-    @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20;
+    @apply w-full rounded-xl border border-slate-300 bg-surface px-3 py-2.5 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20;
   }
   .label {
     @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500;

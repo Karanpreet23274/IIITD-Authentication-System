@@ -25,7 +25,7 @@ export default function LoginForms({
 }) {
   const err = error ? (ERRORS[error] ?? "Sign-in failed. Please try again.") : null;
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-teal-50 to-white px-4 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-teal-50 to-[rgb(var(--bg))] px-4 py-10">
       <div className="w-full max-w-md">
         <Link href="/" className="mb-6 flex items-center justify-center gap-2 text-brand">
           <ShieldCheck className="h-7 w-7" />

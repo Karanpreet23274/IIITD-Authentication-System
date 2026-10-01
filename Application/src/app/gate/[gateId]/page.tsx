@@ -11,7 +11,7 @@ type Display = {
   at: string | null;
 };
 
-const BG: Record<Tone, string> = { allow: "bg-allow", warn: "bg-warn", deny: "bg-deny", neutral: "bg-slate-700" };
+const BG: Record<Tone, string> = { allow: "bg-allow", warn: "bg-warn", deny: "bg-deny", neutral: "bg-[#334155]" };
 
 // User-facing gate indicator (S01 idle, S04 success, S06–S09 denial). Shows colour, icon and a
 // short respectful message only. Never a name or a reason (PRIV-10, DP-13).
@@ -67,7 +67,7 @@ export default function GateIndicator({ params }: { params: { gateId: string } }
     });
   }
 
-  const laneDot = !d || err ? "bg-slate-400" : d.lane === "ONLINE" ? "bg-green-400" : d.lane === "CLOSED" ? "bg-slate-400" : "bg-amber-400";
+  const laneDot = !d || err ? "bg-[#94a3b8]" : d.lane === "ONLINE" ? "bg-[#4ade80]" : d.lane === "CLOSED" ? "bg-[#94a3b8]" : "bg-[#fbbf24]";
   const laneText = err ? "Connecting…" : d?.lane === "ONLINE" ? "Ready" : d?.lane === "OFFLINE" ? "Offline mode" : d?.lane === "CLOSED" ? "Gate closed" : d ? `${d.lane} mode` : "…";
 
   if (d?.display.state === "RESULT") {
@@ -84,8 +84,8 @@ export default function GateIndicator({ params }: { params: { gateId: string } }
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between bg-slate-900 p-6 text-white">
-      <div className="flex w-full items-center justify-between text-sm text-slate-300">
+    <main className="flex min-h-screen flex-col items-center justify-between bg-[#0f172a] p-6 text-white">
+      <div className="flex w-full items-center justify-between text-sm text-[#cbd5e1]">
         <span>
           {d?.gate.name ?? params.gateId}
         </span>
@@ -96,17 +96,17 @@ export default function GateIndicator({ params }: { params: { gateId: string } }
       {d?.lane === "CLOSED" ? (
         <div className="text-center">
           <div className="text-4xl font-extrabold">Gate closed</div>
-          <div className="mt-2 text-xl text-slate-300">गेट बंद है · Please use another gate</div>
+          <div className="mt-2 text-xl text-[#cbd5e1]">गेट बंद है · Please use another gate</div>
         </div>
       ) : (
         <div className="text-center">
           <div className="relative mx-auto flex h-48 w-48 items-center justify-center">
-            <span className="absolute inset-0 animate-pulse_ring rounded-full border-4 border-teal-400" />
-            <QrCode className="h-24 w-24 text-teal-300" />
+            <span className="absolute inset-0 animate-pulse_ring rounded-full border-4 border-[#2dd4bf]" />
+            <QrCode className="h-24 w-24 text-[#5eead4]" />
           </div>
           <div className="mt-8 text-3xl font-extrabold sm:text-5xl">Show your gate QR to the guard</div>
-          <div className="mt-3 text-xl text-slate-300 sm:text-2xl">अपना गेट QR गार्ड को दिखाएँ</div>
-          <div className="mt-6 text-sm text-slate-400">Open the IIITD Gate app → Generate gate QR · screenshots are not accepted</div>
+          <div className="mt-3 text-xl text-[#cbd5e1] sm:text-2xl">अपना गेट QR गार्ड को दिखाएँ</div>
+          <div className="mt-6 text-sm text-[#94a3b8]">Open the IIITD Gate app → Generate gate QR · screenshots are not accepted</div>
         </div>
       )}
       {!sound ? (
