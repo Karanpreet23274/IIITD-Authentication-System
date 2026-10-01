@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "gate-app", "runtimeExecutable": "npm", "runtimeArgs": ["--prefix", "Application", "run", "dev"], "port": 3000 }
+  ]
+}

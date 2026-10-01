@@ -1,0 +1,23 @@
+digraph G { 
+  graph [fontname="Helvetica", fontsize=11, pad=0.3, nodesep=0.35, ranksep=0.45, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#F4F6F8", color="#334155", penwidth=1.1, margin="0.15,0.08"];
+  edge  [fontname="Helvetica", fontsize=9, color="#334155", arrowsize=0.75];
+ rankdir=TB;
+  label="Figure J-6. Lost or stolen credential: self-service immediate, irreversible revocation; access continues via phone credential"; labelloc=t; fontsize=13;
+  L [label="Student notices card lost / stolen" shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6];
+  App [label="App / portal: My credentials (S18)\n[Report lost or stolen]"];
+  Conf [label="Confirm sheet:\n\"Permanently disables card.\nPhone credential keeps working.\nCannot be undone.\""];
+  Rev [label="Card -> REVOKED (seconds)\nrevocation list re-signed\npushed to all readers (<=30 s online;\nnext sync offline)" fillcolor="#FEE2E2", color="#991B1B"];
+  Req [label="Replacement request created\nstatus visible in app"];
+  Phone [label="Student enters with\nphone credential (NFC/QR)" fillcolor="#DCFCE7", color="#166534"];
+  Off [label="Issuer at ID cell: identity check\nvs roster + photo -> new card ISSUED\n(new key; old stays REVOKED) (S17)"];
+  Act [label="New card ACTIVE on first tap" fillcolor="#DCFCE7", color="#166534"];
+  subgraph cluster_att { label="Attacker path (Scenario 1)"; style=dashed; color="#991B1B";
+    Att [label="Finder taps lost card" shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6];
+    Before [label="Before report:\nauthenticates; guard sees\nstudent's photo != face\n-> [Mismatch] -> DENY-SUSPICIOUS" fillcolor="#FEF3C7", color="#92400E"];
+    After [label="After report:\nDENY - REVOKED (S08)\nflagged, supervisor alerted" fillcolor="#FEE2E2", color="#991B1B"]; }
+  Log [label="Audit log: revocation (who/when),\nevery tap of the revoked card (flagged)" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"];
+  L -> App -> Conf -> Rev -> Req; Rev -> Phone; Req -> Off -> Act;
+  Att -> Before [label="t < report"]; Att -> After [label="t > report"];
+  {Rev Before After Off} -> Log;
+}

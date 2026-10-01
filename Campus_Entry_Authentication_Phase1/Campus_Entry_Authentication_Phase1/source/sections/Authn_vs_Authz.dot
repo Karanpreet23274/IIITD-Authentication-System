@@ -1,0 +1,18 @@
+digraph G { 
+  graph [fontname="Helvetica", fontsize=11, pad=0.3, nodesep=0.35, ranksep=0.45, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#F4F6F8", color="#334155", penwidth=1.1, margin="0.15,0.08"];
+  edge  [fontname="Helvetica", fontsize=9, color="#334155", arrowsize=0.75];
+ rankdir=TB;
+  label="Figure J-3. Authentication (\"Who are you?\") is decided before and separately from Authorization (\"Are you allowed here, now?\")"; labelloc=t; fontsize=13;
+  Present [label="Student presents credential"];
+  subgraph cluster_a { label="AUTHENTICATION - Who is this credential bound to?"; style="rounded,dashed"; color="#1E3A8A"; bgcolor="#EFF6FF";
+    A1 [label="Reader issues nonce"]; A2 [label="Credential proves key possession\n(AES challenge-response / Ed25519 signature)"]; A3 [label="Verified against key material in HSM"]; AR [label="Identity reference resolved\n(credential pseudonym -> identity)" fillcolor="#DCFCE7", color="#166534"];
+    AF [label="FAIL: NOT RECOGNISED\nNo identity is known. Guard cannot \"help\".\nDirect to Security Office." fillcolor="#FEE2E2", color="#991B1B"]; }
+  subgraph cluster_z { label="AUTHORIZATION - Is this principal allowed at this gate, now?"; style="rounded,dashed"; color="#166534"; bgcolor="#F0FDF4";
+    Z1 [label="Credential status ACTIVE?\n(not expired / revoked / suspended)"]; Z2 [label="Role permitted at this gate?"]; Z3 [label="Within permitted time window?"]; Z4 [label="No active alert (SEC-13)?"]; ZR [label="ALLOW\nGuard confirms face against server photo" fillcolor="#DCFCE7", color="#166534"];
+    ZF [label="FAIL: identity IS known.\nMessage names the class:\nEXPIRED -> ID cell | REVOKED -> Security Office\nNOT PERMITTED -> other gate | SUSPICIOUS -> supervisor" fillcolor="#FEF3C7", color="#92400E"]; }
+  Log [label="Every decision logged\n(pseudonymous)" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"];
+  Present -> A1 -> A2 -> A3 -> AR; A3 -> AF [label="invalid"]; AR -> Z1 -> Z2 -> Z3 -> Z4 -> ZR;
+  Z1 -> ZF [label="no"]; Z2 -> ZF [label="no"]; Z3 -> ZF [label="no"]; Z4 -> ZF [label="no"];
+  {AF ZF ZR} -> Log;
+}

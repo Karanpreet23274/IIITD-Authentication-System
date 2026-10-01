@@ -1,0 +1,24 @@
+digraph G { 
+  graph [fontname="Helvetica", fontsize=11, pad=0.3, nodesep=0.35, ranksep=0.45, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#F4F6F8", color="#334155", penwidth=1.1, margin="0.15,0.08"];
+  edge  [fontname="Helvetica", fontsize=9, color="#334155", arrowsize=0.75];
+ rankdir=LR; ranksep=0.55;
+  label="Figure J-10. Level-1 data flow diagram with trust boundaries (dashed), stores and sensitive flows (F1-F12)"; labelloc=t; fontsize=13;
+  Student [shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6]; Guard [shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6]; Visitor [shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6]; Host [shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6]; Admin [shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6 label="Administrator"];
+  subgraph cluster_b1 { label="B1/B2 Gate"; style=dashed; color="#64748B";
+    P1 [label="P1 Present &\nread credential" shape=ellipse, style="filled", fillcolor="#F0F9FF", color="#0C4A6E"]; Ind [label="User indicator" fillcolor="#E5E7EB", color="#374151"]; Tab [label="Guard tablet" fillcolor="#E5E7EB", color="#374151"]; Buf [label="Reader buffer\n(encrypted)" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; }
+  subgraph cluster_b3 { label="B3 Services"; style=dashed; color="#64748B";
+    P2 [label="P2 Authenticate" shape=ellipse, style="filled", fillcolor="#F0F9FF", color="#0C4A6E"]; P3 [label="P3 Check validity" shape=ellipse, style="filled", fillcolor="#F0F9FF", color="#0C4A6E"]; P4 [label="P4 Authorize" shape=ellipse, style="filled", fillcolor="#F0F9FF", color="#0C4A6E"]; P5 [label="P5 Decide & signal" shape=ellipse, style="filled", fillcolor="#F0F9FF", color="#0C4A6E"]; P6 [label="P6 Log event" shape=ellipse, style="filled", fillcolor="#F0F9FF", color="#0C4A6E"];
+    P7 [label="P7 Manage\ncredentials" shape=ellipse, style="filled", fillcolor="#F0F9FF", color="#0C4A6E"]; P8 [label="P8 Manage\nvisitors" shape=ellipse, style="filled", fillcolor="#F0F9FF", color="#0C4A6E"]; P9 [label="P9 Review logs" shape=ellipse, style="filled", fillcolor="#F0F9FF", color="#0C4A6E"];
+    D1 [label="D1 Credential &\nIdentity Store" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; D2 [label="D2 Policy Store" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; D3 [label="D3 Audit Log\n(hash-chained)" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; D4 [label="D4 Visitor passes" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; D6 [label="D6 Photo store" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; }
+  subgraph cluster_b4 { label="B4 Key custody"; style=dashed; color="#4C1D95"; D5 [label="D5 HSM / KMS" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; }
+  Student -> P1 [label="F1 card response /\nsigned token"]; Visitor -> P1 [label="F1 pass QR"];
+  P1 -> P2 [label="F2 {pseudonym, gate, nonce,\nresponse, method, ts} mTLS"]; P1 -> Buf [style=dashed, label="offline"];
+  P2 -> D5 [dir=both, label="F3 verify"]; P2 -> P3 [label="F4 identity ref"]; P3 -> D1 [dir=both]; P3 -> P4; P4 -> D2 [dir=both, label="F5"]; P4 -> P5;
+  P5 -> Tab [label="F6 decision, first name,\nrole, photo URL (60 s)"]; P5 -> Ind [label="F7 colour/icon/msg"]; Tab -> Guard; Ind -> Student; D6 -> Tab [label="photo (signed URL)", style=dashed];
+  P5 -> P6 [label="F8"]; P6 -> D3 [label="append"];
+  Admin -> P7 [label="F9 issue/revoke\n(MFA)"]; P7 -> D1; P7 -> D5 [label="key ops"]; P7 -> P6;
+  Host -> P8 [label="F10 request"]; P8 -> D4; D4 -> Visitor [label="F10 signed QR"];
+  Admin -> P9 [label="F11 query (MFA)"]; P9 -> D3 [dir=both]; P9 -> D1 [label="re-identify\n(justified, logged)", style=dashed];
+  Student -> D1 [label="F12 report lost;\nview own (app)", style=dashed]; Student -> D3 [label="F12 own events", style=dashed];
+}

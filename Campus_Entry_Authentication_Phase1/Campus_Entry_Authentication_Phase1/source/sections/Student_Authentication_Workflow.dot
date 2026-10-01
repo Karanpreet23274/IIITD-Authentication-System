@@ -1,0 +1,24 @@
+digraph G { 
+  graph [fontname="Helvetica", fontsize=11, pad=0.3, nodesep=0.35, ranksep=0.45, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#F4F6F8", color="#334155", penwidth=1.1, margin="0.15,0.08"];
+  edge  [fontname="Helvetica", fontsize=9, color="#334155", arrowsize=0.75];
+ rankdir=TB;
+  label="Figure J-2. Student authentication workflow (screens S01-S09, S16)"; labelloc=t; fontsize=13;
+  S01 [label="S01 Reader idle\n\"Tap card or phone\""]; S02 [label="S02 Credential detected\nnonce challenge / token read"]; S03 [label="S03 Verifying (<=1 s)"];
+  Online [label="Server reachable?" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"]; Local [label="Verify locally:\ncached public keys +\nsigned revocation list" fillcolor="#FEF3C7", color="#92400E"]; Srv [label="Auth Service verifies\n(HSM)" fillcolor="#DBEAFE", color="#1E3A8A"];
+  A [label="AUTHENTICATED?\n(key possession proven)" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"];
+  V [label="Status & validity?" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"]; Z [label="AUTHORIZED?\nrole x gate x time x alerts" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"];
+  S06 [label="S06 DENY - NOT RECOGNISED\nno identity known\n-> Security Office" fillcolor="#FEE2E2", color="#991B1B"];
+  S07 [label="S07 DENY - EXPIRED\nidentity known\n-> ID cell (renew)" fillcolor="#FEF3C7", color="#92400E"];
+  S08 [label="S08 DENY - REVOKED / SUSPENDED\nreason not shown\n-> Security Office (flagged)" fillcolor="#FEE2E2", color="#991B1B"];
+  S09 [label="S09 DENY - SUSPICIOUS\nsupervisor alerted (flagged)" fillcolor="#FEE2E2", color="#991B1B"];
+  S06b [label="S06b DENY - NOT PERMITTED\nat this gate/time" fillcolor="#FEF3C7", color="#92400E"];
+  S04 [label="S04 User: green + tone\n\"Welcome - go ahead\"" fillcolor="#DCFCE7", color="#166534"]; S05 [label="S05 Guard: photo + first name\n+ role + ALLOWED" fillcolor="#DCFCE7", color="#166534"];
+  Face [label="Guard: face matches\nserver photo?" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"]; Pass [label="Enter. Auto-clear\n(<=5 s)" fillcolor="#DCFCE7", color="#166534"];
+  Log [label="Audit log event\n(pseudonym, gate, time,\nmethod, decision)" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"];
+  S01 -> S02 -> S03 -> Online; Online -> Srv [label="yes"]; Online -> Local [label="no (<= N h list age)"];
+  Srv -> A; Local -> A; A -> S06 [label="no / timeout"]; A -> V [label="yes"];
+  V -> S07 [label="expired"]; V -> S08 [label="revoked/\nsuspended"]; V -> S09 [label="alert flag"]; V -> Z [label="active"];
+  Z -> S06b [label="no"]; Z -> S04 [label="yes"]; S04 -> S05 [style=dashed, dir=none]; S05 -> Face; Face -> Pass [label="yes"]; Face -> S09 [label="[Mismatch]"];
+  {S06 S07 S08 S09 S06b Pass} -> Log; S09 -> S01 [style=dotted]; Pass -> S01 [style=dotted];
+}

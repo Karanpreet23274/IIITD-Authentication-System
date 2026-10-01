@@ -1,0 +1,22 @@
+digraph G { 
+  graph [fontname="Helvetica", fontsize=11, pad=0.3, nodesep=0.35, ranksep=0.45, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#F4F6F8", color="#334155", penwidth=1.1, margin="0.15,0.08"];
+  edge  [fontname="Helvetica", fontsize=9, color="#334155", arrowsize=0.75];
+ rankdir=TB;
+  label="Figure J-8. Network / device failure: ordered degradation - online -> offline-verified (bounded) -> supervised manual -> emergency egress-only. No state auto-allows."; labelloc=t; fontsize=13;
+  On [label="ONLINE\nserver-verified decisions\nstatus bar green" fillcolor="#DCFCE7", color="#166534"];
+  HB [label="Heartbeat to server lost\nor auth service unavailable?" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"];
+  Off [label="OFFLINE-VERIFIED (S11)\nlocal crypto verification with cached public keys\n+ signed revocation list; events buffered\nstatus bar amber: \"Last update 1 h 20 m ago (limit 4 h)\"" fillcolor="#FEF3C7", color="#92400E"];
+  Age [label="List age <= N h (default 4)?" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"];
+  RF [label="Reader self-test / tamper\nor power failure? (S10)" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"];
+  Lane2 [label="Close lane; redirect to another lane" fillcolor="#FEF3C7", color="#92400E"];
+  Other [label="Another lane available?" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"];
+  Man [label="MANUAL VERIFICATION MODE (S12)\nsupervisor PIN to start. Per person: credential type shown,\nphoto check vs card, supervisor approval (or batch at peak).\nNo roster lookup. Everything recorded + flagged." fillcolor="#FEE2E2", color="#991B1B"];
+  Paper [label="Tablet dead: pre-printed serial-numbered\npaper form mirrors S12 steps; transcribed later"];
+  Em [label="EMERGENCY (supervisor declares, reason logged)\nEgress barriers always free (life safety).\nIngress held open only for responders;\nevery entry logged as emergency-mode." fillcolor="#FEE2E2", color="#991B1B"];
+  Restore [label="Connectivity / hardware restored" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"];
+  Sync [label="Buffered events sync;\nmanual entries reviewed by supervisor/auditor" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"];
+  On -> HB; HB -> On [label="no"]; HB -> Off [label="yes"]; Off -> Age; Age -> Off [label="yes: keep verifying"]; Age -> Man [label="no: limit exceeded"];
+  On -> RF; Off -> RF; RF -> Other [label="yes"]; Other -> Lane2 [label="yes"]; Other -> Man [label="no"]; Man -> Paper [label="tablet also down", style=dashed];
+  {On Off Man} -> Em [label="emergency", style=dotted]; Man -> Restore; Off -> Restore; Restore -> Sync [label="yes"]; Sync -> On;
+}

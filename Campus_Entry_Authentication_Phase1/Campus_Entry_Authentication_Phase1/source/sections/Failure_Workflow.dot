@@ -1,0 +1,28 @@
+digraph G { 
+  graph [fontname="Helvetica", fontsize=11, pad=0.3, nodesep=0.35, ranksep=0.45, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#F4F6F8", color="#334155", penwidth=1.1, margin="0.15,0.08"];
+  edge  [fontname="Helvetica", fontsize=9, color="#334155", arrowsize=0.75];
+ rankdir=TB;
+  label="Figure J-7. Authentication / authorization failure handling: no guard override exists; every DENY has a scripted next step"; labelloc=t; fontsize=13;
+  Tap [label="Credential presented"];
+  Class [label="Decision class" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"];
+  NR [label="NOT RECOGNISED\n(authn failed: fake, clone,\nreplay, damaged, non-campus)" fillcolor="#FEE2E2", color="#991B1B"];
+  EX [label="EXPIRED\n(identity known)" fillcolor="#FEF3C7", color="#92400E"];
+  RV [label="REVOKED / SUSPENDED\n(identity known, reason hidden)" fillcolor="#FEE2E2", color="#991B1B"];
+  NP [label="NOT PERMITTED\nat this gate / time" fillcolor="#FEF3C7", color="#92400E"];
+  SU [label="SUSPICIOUS\n(SEC-13 threshold or [Mismatch])" fillcolor="#FEE2E2", color="#991B1B"];
+  U [label="User indicator: red/amber + generic message\n\"Not accepted - please visit the Security Office\"\n(no reason to bystanders - PRIV-10)"];
+  G1 [label="Guard script: Do not admit.\nDirect to Security Office.\n[Call supervisor] [Done]"];
+  G2 [label="Guard script: Do not admit.\nDirect to ID cell for renewal.\n[Call supervisor] [Done]"];
+  G3 [label="Guard script: Do not admit.\nDirect to permitted gate / Security Office. [Done]"];
+  G4 [label="Guard script: Do not admit. Keep at gate if safe.\nSupervisor already alerted. [Call supervisor]"];
+  PA [label="Student receives private explanation\nin app (HE-9 fix)" fillcolor="#DBEAFE", color="#1E3A8A"];
+  Esc [label="Repeated failures on credential or reader?" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"];
+  Alert [label="Escalate -> SUSPICIOUS; supervisor alert;\nreader rate-limit" fillcolor="#FEE2E2", color="#991B1B"];
+  Log [label="Audit log (flagged where applicable)" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"];
+  NoOv [label="NO [Allow anyway] CONTROL.\nOnly path to admit without valid credential =\nsupervised Manual Verification Mode (Figure J-8)" shape=note fillcolor="#FFF7ED" color="#9A3412"];
+  Tap -> Class; Class -> NR; Class -> EX; Class -> RV; Class -> NP; Class -> SU;
+  {NR EX RV NP SU} -> U; NR -> G1; RV -> G1; EX -> G2; NP -> G3; SU -> G4;
+  {EX RV} -> PA [style=dashed]; {G1 G2 G3 G4} -> Log; NR -> Esc; Esc -> Alert [label="yes"]; Alert -> Log;
+  G1 -> NoOv [style=invis];
+}

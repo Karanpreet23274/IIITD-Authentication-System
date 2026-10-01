@@ -1,0 +1,43 @@
+digraph G { 
+  graph [fontname="Helvetica", fontsize=11, pad=0.3, nodesep=0.35, ranksep=0.45, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#F4F6F8", color="#334155", penwidth=1.1, margin="0.15,0.08"];
+  edge  [fontname="Helvetica", fontsize=9, color="#334155", arrowsize=0.75];
+ rankdir=TB; newrank=true; ranksep=0.7; nodesep=0.4;
+  label="Figure J-13. Conceptual system architecture: trust boundaries B1-B7, sensitive data [brackets], attack surfaces and controls"; labelloc=t; fontsize=13;
+  subgraph cluster_b1 { label="B1 Physical / RF / optical   -   attack surface: skimming, relay, fake credential"; style="dashed"; color="#991B1B";
+    Stu [label="Student / Visitor" shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6]; Cred [label="Credential: AES smart card | phone NFC (Ed25519) | dynamic signed QR | visitor pass\n[secret: per-card key / phone private key - never transmitted]"]; }
+  subgraph cluster_b2 { label="B2 Gate LAN   -   attack surface: reader housing, debug ports, rogue server"; style="dashed"; color="#9A3412";
+    Reader [label="Gate Reader + user indicator\nholds: own client cert, public keys, signed revocation list, encrypted event buffer\nNO master keys | signed firmware | tamper switch | rate limit" fillcolor="#FEF3C7", color="#92400E"];
+    Tablet [label="Guard tablet\nrole-limited UI (photo + first name + role + decision)\nno local personal data | auto-clear | privacy hood" fillcolor="#FEF3C7", color="#92400E"]; }
+  subgraph cluster_b3 { label="B3 Services   -   attack surface: APIs, injection, misconfiguration (OWASP ASVS L2)"; style="dashed"; color="#1E3A8A";
+    Auth [label="Authentication Service\nnonce issue | verify | replay cache" fillcolor="#DBEAFE", color="#1E3A8A"];
+    Pol [label="Authorization / Policy Engine\ndeny-by-default | versioned rules" fillcolor="#DBEAFE", color="#1E3A8A"];
+    Decs [label="Decision Service\nsigns ALLOW / DENY-class" fillcolor="#DBEAFE", color="#1E3A8A"];
+    LogS [label="Audit Log Service\nappend-only | hash chain | signed checkpoints" fillcolor="#DBEAFE", color="#1E3A8A"];
+    VisS [label="Visitor Pass Service\nsigned, time/gate-bound passes" fillcolor="#DBEAFE", color="#1E3A8A"];
+    Store [label="Credential & Identity Store\n[identity fields, status] encrypted at rest\npseudonym map in separate schema" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"];
+    Photo [label="Photo store\nseparate ACL | signed 60 s URLs" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"];
+    PStore [label="Policy Store\nversioned" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"];
+    LogD [label="Log Store\n[movement, pseudonymous]\n90-day retention job" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"];
+    VisD [label="Visitor table\n[name, host, contact] 30 d" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"];
+    {rank=same; Auth; Pol; Decs; LogS; VisS;}
+    {rank=same; Store; Photo; PStore; LogD; VisD;} }
+  subgraph cluster_b4 { label="B4 Key custody"; style="dashed"; color="#4C1D95";
+    HSM [label="HSM / KMS\nmaster diversification key | token & list signing keys | decision signing key | checkpoint key\n[keys never leave]" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; }
+  subgraph cluster_side { style=invis;
+    App [label="B6 Student app / portal   -   attack surface: malware, rooted device\nhardware keystore | TLS pinning | enrol, dynamic QR, HCE, report lost, view own" fillcolor="#DBEAFE", color="#1E3A8A" color="#0C4A6E" style="rounded,filled,dashed"];
+    Admin [label="B5 Admin console   -   attack surface: session hijack, insider\nMFA | RBAC (Issuer / Approver / Auditor / Policy) | step-up confirm | session timeout" fillcolor="#DCFCE7", color="#166534" style="rounded,filled,dashed"];
+    Host [label="B7 Host / Approver  ->  Visitor phone or printout   -   attack surface: forwarded pass" shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6 style="filled,dashed"];
+    {rank=same; App; Admin; Host;} }
+  {rank=same; Stu; Cred;}
+  {rank=same; Reader; Tablet;}
+  Stu -> Cred [label=" present"]; Cred -> Reader [label=" challenge-response / signed token"];
+  Reader -> Auth [label=" mTLS 1.3, pinned server cert"]; Auth -> HSM [dir=both, label=" verify"]; Auth -> Store [dir=both];
+  Auth -> Pol; Pol -> PStore [dir=both]; Pol -> Decs; Decs -> HSM [style=dotted, label=" sign"];
+  Decs -> Reader [label=" signed decision", constraint=false]; Decs -> Tablet [label=" decision + first name + role", constraint=false]; Photo -> Tablet [style=dashed, label=" photo (60 s URL)", constraint=false];
+  Decs -> LogS; LogS -> LogD; Reader -> LogS [style=dashed, label=" buffered events (offline)", constraint=false];
+  Auth -> Reader [style=dotted, dir=back, label=" signed revocation list + public keys", constraint=false];
+  VisS -> VisD; VisS -> HSM [style=dotted];
+  App -> Auth [label=" enrol / self-service", constraint=false]; Admin -> Store [label=" issue / revoke (logged)", constraint=false]; Admin -> PStore [label=" edit policy", constraint=false]; Admin -> LogD [label=" read pseudonymous", constraint=false]; Host -> VisS [label=" request pass", constraint=false];
+  LogD -> App [style=invis];
+}

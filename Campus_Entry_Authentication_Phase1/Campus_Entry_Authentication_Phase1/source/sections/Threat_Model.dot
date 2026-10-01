@@ -1,0 +1,16 @@
+digraph G { 
+  graph [fontname="Helvetica", fontsize=11, pad=0.3, nodesep=0.35, ranksep=0.45, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#F4F6F8", color="#334155", penwidth=1.1, margin="0.15,0.08"];
+  edge  [fontname="Helvetica", fontsize=9, color="#334155", arrowsize=0.75];
+ rankdir=LR; ranksep=0.6; nodesep=0.2;
+  label="Figure J-9. Threat model as an attack tree. Root: unauthorised entry. Leaves show the controlling requirement(s)."; labelloc=t; fontsize=13;
+  Root [label="GOAL: Unauthorised person enters campus" fillcolor="#FEE2E2", color="#991B1B" penwidth=2];
+  P [label="Possess a valid\ncredential" fillcolor="#FEF3C7", color="#92400E"]; F [label="Forge a\ncredential" fillcolor="#FEF3C7", color="#92400E"]; L [label="Exploit the\nlifecycle" fillcolor="#FEF3C7", color="#92400E"]; I [label="Exploit\ninfrastructure" fillcolor="#FEF3C7", color="#92400E"]; Hm [label="Exploit the\nhuman" fillcolor="#FEF3C7", color="#92400E"];
+  P1 [label="Steal / find card\nTH-01 -> SEC-17 self-revoke,\nFR-12 photo check"]; P2 [label="Borrow friend's card\nTH-04a -> FR-12, USE-05,\nSEC-13 velocity"]; P3 [label="Real-time relay\nTH-04b -> FR-12 (residual)\n[18-20]"]; P4 [label="Steal phone\nTH-16 -> unlock required,\nremote revoke"];
+  F1 [label="Clone weak tech (UID, static QR,\nMIFARE Classic) TH-02 -> SEC-01\nnever accept UID; AES cards"]; F2 [label="Replay captured exchange / QR\nTH-03 -> SEC-04 nonce,\n30-60 s tokens, replay cache"]; F3 [label="Home-made fake card\nTH-06 -> SEC-01\n-> NOT RECOGNISED"];
+  L1 [label="Use expired card\nTH-07 -> SEC-03\nserver-side expiry"]; L2 [label="Use revoked card\nTH-08 -> SEC-02,\nSEC-19 signed list"]; L3 [label="Ghost issuance by insider\nTH-17 -> FR-07 roster match,\nSEC-07/11/12"];
+  I1 [label="Rogue server returns ALLOW\nTH-12 -> SEC-05 mTLS,\nsigned decisions"]; I2 [label="Compromise reader\nTH-16 -> SEC-18 no master keys,\ntamper log, cert revoke"]; I3 [label="DoS -> force manual mode\nTH-14 -> SEC-19 bounded offline,\nFR-19 supervised manual"]; I4 [label="Dump database\nTH-10 -> SEC-14 minimise,\nHSM keys, PRIV-04"];
+  H1 [label="Coerce / collude guard\nTH-17 -> no override (FR-13),\nmanual entries flagged"]; H2 [label="Social-engineer visitor path\nTH-05 -> SEC-16 host approval,\nbound pass"]; H3 [label="Pressure at peak\nTH-04 -> USE-01 tap faster\nthan glance; USE-12"];
+  Root -> {P F L I Hm};
+  P -> {P1 P2 P3 P4}; F -> {F1 F2 F3}; L -> {L1 L2 L3}; I -> {I1 I2 I3 I4}; Hm -> {H1 H2 H3};
+}

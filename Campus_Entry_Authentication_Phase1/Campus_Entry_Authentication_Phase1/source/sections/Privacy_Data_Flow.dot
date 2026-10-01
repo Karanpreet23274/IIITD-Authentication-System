@@ -1,0 +1,19 @@
+digraph G { 
+  graph [fontname="Helvetica", fontsize=11, pad=0.3, nodesep=0.35, ranksep=0.45, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#F4F6F8", color="#334155", penwidth=1.1, margin="0.15,0.08"];
+  edge  [fontname="Helvetica", fontsize=9, color="#334155", arrowsize=0.75];
+ rankdir=LR; ranksep=0.5;
+  label="Figure J-11. Privacy data flow: what is collected -> why -> who can access -> where stored -> how long -> deletion. Guard path holds only photo + first name + role."; labelloc=t; fontsize=13;
+  node [shape=box, style="rounded,filled"];
+  subgraph cluster_c { label="Collected (source)"; style=dashed; color="#64748B";
+    C1 [label="Identity: full name, roll no.,\nprogramme, photo, role\n(from roster at issuance)"]; C2 [label="Credential: pseudonym,\nkey material, validity, status"]; C3 [label="Access event: pseudonym,\ngate, time, method, decision"]; C4 [label="Visitor: name, host, purpose\ncategory, window, contact"]; C5 [label="NOT collected: phone, address,\nemergency contact, hostel,\nbiometric templates, exit events" fillcolor="#E5E7EB", color="#374151"]; }
+  subgraph cluster_w { label="Why (purpose)"; style=dashed; color="#64748B";
+    W1 [label="Bind credential to member;\nhuman face check"]; W2 [label="Authenticate; authorize;\nrevoke"]; W3 [label="Access audit; incident\ninvestigation; anomaly detection"]; W4 [label="Issue & check pass;\ndeliver pass"]; }
+  subgraph cluster_a { label="Who can access"; style=dashed; color="#64748B";
+    A1 [label="Issuer; student (own);\nGuard: PHOTO + FIRST NAME + ROLE ONLY (on tap);\nAuditor: on justified re-identify" fillcolor="#DBEAFE", color="#1E3A8A"]; A2 [label="System / HSM; Issuer;\nstudent (own status)"]; A3 [label="Auditor (pseudonymous);\nSupervisor (counts);\nstudent (own)"]; A4 [label="Approver; Guard: name + host only;\ncontact: delivery system only"]; }
+  subgraph cluster_s { label="Where stored"; style=dashed; color="#64748B";
+    S1 [label="D1 encrypted; D6 photo store\n(separate access control)" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; S2 [label="D1 + D5 HSM\n(keys never in DB)" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; S3 [label="D3 hash-chained;\npseudonym map in separate schema" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; S4 [label="D4" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; }
+  subgraph cluster_r { label="Retention -> deletion (automatic, logged)"; style=dashed; color="#64748B";
+    R1 [label="While member;\n+1 y after last credential revoked/expired"]; R2 [label="Credential lifecycle + 1 y;\nkeys zeroised"]; R3 [label="90 days routine;\nflagged: case closed + 1 y"]; R4 [label="Visit + 30 days;\ncontact deleted at visit end"]; }
+  C1 -> W1 -> A1 -> S1 -> R1; C2 -> W2 -> A2 -> S2 -> R2; C3 -> W3 -> A3 -> S3 -> R3; C4 -> W4 -> A4 -> S4 -> R4;
+}

@@ -1,0 +1,23 @@
+digraph G { 
+  graph [fontname="Helvetica", fontsize=11, pad=0.3, nodesep=0.35, ranksep=0.45, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#F4F6F8", color="#334155", penwidth=1.1, margin="0.15,0.08"];
+  edge  [fontname="Helvetica", fontsize=9, color="#334155", arrowsize=0.75];
+ rankdir=LR;
+  label="Figure J-1. Overall system: user studies drove the requirements; every decision is authenticated, authorized and logged"; labelloc=t; fontsize=13;
+  subgraph cluster_u { label="Users"; style=dashed; color="#64748B";
+    Student [shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6]; Visitor [shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6]; Host [shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6 label="Host\n(faculty/staff)"]; Admin [shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6 label="Administrator\n(Issuer/Approver/\nAuditor/Policy)"]; }
+  subgraph cluster_g { label="Gate (trust boundary B1/B2)"; style=dashed; color="#64748B";
+    Cred [label="Credential\nsmart card / phone NFC /\ndynamic QR / visitor pass"]; Reader [label="Reader + user indicator\n(no master keys)"]; Guard [label="Guard tablet\nphoto + name + decision"]; }
+  subgraph cluster_s { label="Services (B3/B4)"; style=dashed; color="#64748B";
+    Auth [label="Authentication\nService" fillcolor="#DBEAFE", color="#1E3A8A"]; Val [label="Validity check\n(status, expiry)" fillcolor="#DBEAFE", color="#1E3A8A"]; Authz [label="Authorization /\nPolicy Engine" fillcolor="#DBEAFE", color="#1E3A8A"]; Dec [label="Signed access\ndecision" fillcolor="#DCFCE7", color="#166534"];
+    Store [label="Credential & Identity\nStore" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; Pol [label="Policy Store" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; Log [label="Audit Log\n(append-only, hash-chained)" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; HSM [label="HSM / KMS\n(keys)" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; VStore [label="Visitor passes" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"]; }
+  Student -> Cred [label="tap / show"]; Visitor -> Cred [label="show pass"];
+  Cred -> Reader [label="challenge-response\nor signed token"]; Reader -> Auth [label="mTLS 1.3"];
+  Auth -> HSM [dir=both, label="verify"]; Auth -> Val -> Store [dir=both]; Val -> Authz; Authz -> Pol [dir=both]; Authz -> Dec;
+  Dec -> Reader [label="ALLOW / DENY-class"]; Dec -> Guard; Dec -> Log;
+  Reader -> Log [label="buffered events\n(offline)", style=dashed];
+  Admin -> Store [label="issue / revoke\n(MFA, logged)"]; Admin -> Pol [label="edit policy"]; Admin -> Log [label="review\n(pseudonymous)"];
+  Host -> VStore [label="request pass"]; VStore -> Visitor [label="signed QR"];
+  Student -> Store [label="self-service:\nreport lost, view own", style=dashed];
+  Auth -> Reader [label="signed revocation list\n+ public keys (sync)", style=dotted, dir=back];
+}

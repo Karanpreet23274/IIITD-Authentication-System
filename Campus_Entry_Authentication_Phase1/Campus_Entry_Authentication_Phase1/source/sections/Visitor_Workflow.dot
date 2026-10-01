@@ -1,0 +1,26 @@
+digraph G { 
+  graph [fontname="Helvetica", fontsize=11, pad=0.3, nodesep=0.35, ranksep=0.45, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#F4F6F8", color="#334155", penwidth=1.1, margin="0.15,0.08"];
+  edge  [fontname="Helvetica", fontsize=9, color="#334155", arrowsize=0.75];
+ rankdir=TB;
+  label="Figure J-5. Visitor access: host pre-approval or gate-initiated approval; time- and gate-bound signed pass; no paper register"; labelloc=t; fontsize=13;
+  H [label="Host submits request (S13)\nname, purpose category, window,\ngate(s), delivery channel" shape=box, style="filled", fillcolor="#FFFFFF", color="#111827", penwidth=1.6];
+  Ap [label="Approver / policy (S14)\napprove | decline | edit window" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"];
+  Iss [label="Signed pass issued (S15)\n{pass ID, host, window, gates, uses}\nEd25519" fillcolor="#DBEAFE", color="#1E3A8A"];
+  Del [label="Delivered to visitor\n(e-mail/SMS; contact used\nonly for delivery)"];
+  Arr [label="Visitor arrives at gate"];
+  Has [label="Has pass?" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"];
+  Scan [label="Scan QR (S02/S03)\nverify signature, window,\ngate set, use count"];
+  Ok [label="Valid?" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"];
+  G [label="Guard sees: VISITOR - first name -\nHost - valid until (S05 variant)\nHost notified of arrival" fillcolor="#DCFCE7", color="#166534"];
+  Deny [label="DENY (S06/S07)\nexpired / wrong gate /\nalready used / forged" fillcolor="#FEE2E2", color="#991B1B"];
+  Walk [label="Guard: [Visitor without approval] (S13 guard variant)\nhost search -> approval request\nto host's phone" fillcolor="#FEF3C7", color="#92400E"];
+  HostOK [label="Host approves\non phone (S14)?" shape=diamond, style="filled", fillcolor="#FFFFFF", color="#334155"];
+  NoEntry [label="No entry. Script: \"Host has not approved.\nPlease contact your host.\"" fillcolor="#FEE2E2", color="#991B1B"];
+  Kiosk [label="Pass issued to visitor phone\nor printed at gate"];
+  Purge [label="Pass consumed / expires;\nvisitor record deleted +30 days" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"];
+  Log [label="Audit log" shape=cylinder, style="filled", fillcolor="#EDE9FE", color="#4C1D95"];
+  H -> Ap; Ap -> Iss [label="approve"]; Iss -> Del -> Arr; Arr -> Has; Has -> Scan [label="yes"]; Scan -> Ok; Ok -> G [label="yes"]; Ok -> Deny [label="no"];
+  Has -> Walk [label="no"]; Walk -> HostOK; HostOK -> Kiosk [label="yes"]; HostOK -> NoEntry [label="no / timeout"]; Kiosk -> Scan;
+  G -> Purge; {G Deny NoEntry} -> Log;
+}
