@@ -43,7 +43,34 @@ export default function AccessPage() {
       <div className="card">
         <h1 className="text-lg font-bold">Guards &amp; admins</h1>
         <p className="text-sm text-slate-500">Everyone signs in with their IIITD Google account. Only the accounts listed here get the Guard app.</p>
-        <div className="table-wrap mt-3">
+        {/* Phones: simple list, remove button always visible */}
+        <ul className="mt-3 divide-y divide-slate-100 sm:hidden">
+          {data?.bootstrapAdmins.map((e) => (
+            <li key={"mb" + e} className="flex items-center gap-2 py-2.5">
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium">{e}</div>
+                <div className="text-xs text-slate-500">deployment setting (ADMIN_EMAILS)</div>
+              </div>
+              <span className="chip shrink-0 border-violet-300 bg-violet-50 text-violet-800">ADMIN</span>
+            </li>
+          ))}
+          {data?.grants.map((g) => (
+            <li key={"m" + g.email} className="flex items-center gap-2 py-2.5">
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium">{g.email}</div>
+                <div className="truncate text-xs text-slate-500">
+                  {fmt(g.createdAt, "date")} by {g.addedBy}
+                </div>
+              </div>
+              <span className={`chip shrink-0 ${g.role === "ADMIN" ? "border-violet-300 bg-violet-50 text-violet-800" : "border-teal-300 bg-teal-50 text-teal-800"}`}>{g.role}</span>
+              <button className="btn-outline shrink-0 px-2.5 py-2 text-deny" onClick={() => remove(g.email)} aria-label={`Remove ${g.email}`}>
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </li>
+          ))}
+          {data && !data.grants.length && <li className="py-6 text-center text-sm text-slate-500">No guards yet. Add the guards&apos; IIITD e-mails.</li>}
+        </ul>
+        <div className="table-wrap mt-3 hidden sm:block">
           <table className="tbl">
             <thead>
               <tr>
