@@ -14,7 +14,8 @@
     "keys": "tsx scripts/gen-keys.ts",
     "postinstall": "prisma generate",
     "e2e": "tsx --env-file=.env scripts/e2e-smoke.ts",
-    "db:seed:demo": "prisma db seed -- --demo"
+    "db:seed:demo": "prisma db seed -- --demo",
+    "vercel-build": "prisma generate && prisma db push --skip-generate && tsx prisma/seed.ts && next build"
   },
   "dependencies": {
     "@noble/curves": "^1.9.7",
