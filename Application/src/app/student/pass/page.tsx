@@ -274,9 +274,9 @@ export default function LivePassPage() {
           </div>
 
           {/* QR */}
-          <div className="relative mx-auto mt-4 aspect-square w-full max-w-[300px] rounded-2xl bg-white p-3">
+          <div className="relative mx-auto mt-4 aspect-square w-[min(100%,260px,36vh)] rounded-2xl bg-white p-3">
             {qr ? (
-              <QRCodeSVG value={qr} level="M" size={512} className={`h-full w-full transition duration-300 ${revealed ? "" : "blur-xl"}`} aria-label="Entry QR code" />
+              <QRCodeSVG value={qr} level="L" size={512} className={`h-full w-full transition duration-300 ${revealed ? "" : "blur-xl"}`} aria-label="Entry QR code" />
             ) : (
               <div className="flex h-full items-center justify-center text-slate-400">
                 <RefreshCw className="h-8 w-8 animate-spin" />
@@ -289,8 +289,9 @@ export default function LivePassPage() {
               </button>
             )}
             {/* refresh progress */}
-            <div className="absolute inset-x-3 bottom-1.5 h-1 overflow-hidden rounded-full bg-slate-200">
-              <div className="h-full bg-brand transition-all duration-200" style={{ width: `${Math.min(100, (tokenLeft / 20) * 100)}%` }} />
+            {/* sits below the white card so the QR's quiet zone stays clear */}
+            <div className="absolute inset-x-6 -bottom-2.5 h-1 overflow-hidden rounded-full bg-white/30">
+              <div className="h-full bg-white transition-all duration-200" style={{ width: `${Math.min(100, (tokenLeft / 20) * 100)}%` }} />
             </div>
           </div>
 
