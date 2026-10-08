@@ -24,7 +24,7 @@ type OfflineEvent = {
   sid?: string;
 };
 
-export type OfflineResult = { decision: Decision; direction: Direction | null; name?: string; rollNo?: string | null };
+export type OfflineResult = { decision: Decision; direction: Direction | null; name?: string; rollNo?: string | null; reasonCode: string };
 
 const BUNDLE_KEY = (g: string) => `offline-bundle:${g}`;
 const PIN_KEY = "offline-server-pubkey";
@@ -89,7 +89,7 @@ export async function syncQueue(): Promise<number> {
 export async function verifyOffline(raw: string, bundle: Bundle, override: Direction | null): Promise<OfflineResult> {
   const record = async (r: { decision: Decision; reason: string; cp?: string; direction?: Direction | null; nonce?: string; sid?: string; name?: string; rollNo?: string | null }) => {
     await enqueue({ ts: Date.now(), gateId: bundle.gateId, pseudonym: r.cp ?? null, direction: r.direction ?? null, decision: r.decision, reasonCode: r.reason, nonce: r.nonce, sid: r.sid });
-    return { decision: r.decision, direction: r.direction ?? null, name: r.name, rollNo: r.rollNo };
+    return { decision: r.decision, direction: r.direction ?? null, name: r.name, rollNo: r.rollNo, reasonCode: r.reason };
   };
   try {
     const parts = raw.trim().split(".");

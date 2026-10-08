@@ -26,6 +26,7 @@ export type GuardView = {
   at: string;
   liveColour?: { name: string; hex: string };
   offline?: boolean;
+  reason?: string | null;
 };
 
 const AUTO_CLEAR_MS = 6000;
@@ -96,7 +97,13 @@ export default function GuardResult({ view, onDone, onNotThisPerson }: { view: G
         </div>
       )}
 
-      {!allow && <p className="text-base text-slate-700">{copy.guardBody}</p>}
+      {!allow && view.reason && (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base">
+          <div className="text-xs font-bold uppercase tracking-wide text-slate-500">Why</div>
+          <div className="font-semibold text-slate-800">{view.reason}</div>
+        </div>
+      )}
+      {!allow && !view.reason && <p className="text-base text-slate-700">{copy.guardBody}</p>}
       <NextStep steps={copy.nextStep} />
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

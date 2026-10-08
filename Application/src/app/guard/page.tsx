@@ -9,6 +9,7 @@ import GuardResult, { type GuardView } from "@/components/GuardResult";
 import GatePicker from "@/components/GatePicker";
 import { ErrorNote, SuccessNote, fetcher, fmt, postJSON } from "@/components/ui";
 import { useGate } from "@/lib/client/useGate";
+import { reasonText } from "@/lib/decisions";
 import { bundleAgeMs, bundleUsable, cachedBundle, queueLength, refreshBundle, syncQueue, verifyOffline, type Bundle } from "@/lib/client/offline";
 
 type Status = {
@@ -95,6 +96,7 @@ function Scanner({ gateId, onChangeGate }: { gateId: string; onChangeGate: () =>
             gateName: st?.gate.name ?? gateId,
             at: new Date().toISOString(),
             offline: true,
+            reason: reasonText(r.reasonCode),
           });
         } else {
           const view = await postJSON<GuardView>("/api/scan/verify", { raw, gateId, direction });

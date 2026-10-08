@@ -3,13 +3,15 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { api, requireAdmin } from "@/lib/rbac";
 import { logAdmin } from "@/lib/audit";
+import { expireLocks } from "@/lib/engine";
 
 export const dynamic = "force-dynamic";
 
-// Security alerts (QR reuse, repeated failures, face mismatch). An open alert keeps
-// that student's pass at SUSPICIOUS until an admin reviews and closes it.
+// Security alerts. A copied/reused QR keeps that student at SUSPICIOUS until an admin
+// closes it; a repeated-failure lock also clears itself after CONFIG.LOCK_MINUTES.
 export const GET = api(async () => {
   await requireAdmin();
+  await expireLocks();
   const alerts = await prisma.alert.findMany({ orderBy: [{ status: "asc" }, { ts: "desc" }], take: 50 });
   const pseudonyms = alerts.map((a) => a.pseudonym).filter(Boolean) as string[];
   const creds = await prisma.credential.findMany({ where: { pseudonym: { in: pseudonyms } }, include: { identity: { select: { fullName: true, rollNo: true } } } });

@@ -52,7 +52,7 @@ export default function AlertsPage() {
           </h1>
           <ViewSwitcher value={view} onChange={setView} views={["list", "grid", "table"]} />
         </div>
-        <p className="text-sm text-slate-500">A student with an open alert is held at SUSPICIOUS at the gate until you close it.</p>
+        <p className="text-sm text-slate-500">Repeated failed scans lock a student for 5 minutes, then unlock automatically. A copied or reused QR keeps them at SUSPICIOUS until you close the alert.</p>
         {data && !alerts.length && <p className="mt-3 text-sm text-slate-500">No alerts.</p>}
 
         {/* LIST */}

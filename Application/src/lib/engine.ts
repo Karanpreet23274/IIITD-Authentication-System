@@ -3,7 +3,7 @@ import { prisma } from "./db";
 import { appendLog } from "./audit";
 import { CONFIG } from "./config";
 import { verifyDeviceSignature } from "./crypto";
-import { DECISION_COPY } from "./decisions";
+import { DECISION_COPY, reasonText } from "./decisions";
 import { liveColour, photoUrl } from "./photo";
 import { deviceSigningInput, parseToken, type StudentTokenPayload } from "./token";
 
@@ -35,6 +35,8 @@ export type GuardView = {
   gateName: string;
   at: string;
   liveColour: { name: string; hex: string };
+  /** Why it was refused, in plain words (guard screen only). */
+  reason: string | null;
 };
 
 type Ident = {
@@ -57,6 +59,7 @@ type Outcome = {
   reasonCode: string;
   pseudonym: string | null;
   identity?: Ident;
+  unlockAt?: string;
 };
 
 const deny = (decision: Decision, reasonCode: string, extra: Partial<Outcome> = {}): Outcome => ({ decision, reasonCode, pseudonym: null, ...extra });
@@ -93,7 +96,12 @@ async function evaluate(p: StudentTokenPayload, body: string, sig: string, devic
   if (session.usedAt) return { ...deny("DENY_NOT_RECOGNISED", "PASS_ALREADY_USED"), pseudonym: p.cp };
   if (session.credential.status !== "ACTIVE") return { ...base, decision: "DENY_BLOCKED", reasonCode: `CREDENTIAL_${session.credential.status}` };
 
-  if ((await prisma.alert.count({ where: { pseudonym: p.cp, status: "OPEN" } })) > 0) return { ...base, decision: "DENY_SUSPICIOUS", reasonCode: "OPEN_ALERT" };
+  await expireLocks();
+  const alert = await prisma.alert.findFirst({ where: { pseudonym: p.cp, status: "OPEN" }, orderBy: { ts: "desc" } });
+  if (alert && isLock(alert)) {
+    return { ...base, decision: "DENY_SUSPICIOUS", reasonCode: "LOCKED", unlockAt: new Date(alert.ts.getTime() + CONFIG.LOCK_MINUTES * 60_000).toISOString() };
+  }
+  if (alert) return { ...base, decision: "DENY_SUSPICIOUS", reasonCode: "OPEN_ALERT" };
   if ((await recentFailures(p.cp)) >= CONFIG.SUSPICIOUS_PER_CREDENTIAL) return { ...base, decision: "DENY_SUSPICIOUS", reasonCode: "REPEATED_FAILURES" };
 
   // One movement per pass; atomic so two scans cannot both succeed.
@@ -106,8 +114,34 @@ function windowStart() {
   return new Date(Date.now() - CONFIG.SUSPICIOUS_WINDOW_MIN * 60_000);
 }
 
+// Refusals that say nothing about an attack (a used or expired pass, or the lock itself)
+// don't count toward the repeated-failure lock.
+const NOT_A_STRIKE = ["PASS_ALREADY_USED", "PASS_EXPIRED", "LOCKED", "OPEN_ALERT", "REPEATED_FAILURES"];
+// Only these mean someone may be using a copy; they need an admin to review.
+const NEEDS_ADMIN = ["QR_REUSED", "CONCURRENT_USE"];
+// Locks raised by earlier versions for repeated failures, which should also clear themselves.
+const LEGACY_LOCK_MESSAGES = ["Suspicious scan (REPEATED_FAILURES)", "Suspicious scan (OPEN_ALERT)"];
+
 async function recentFailures(pseudonym: string) {
-  return prisma.logEntry.count({ where: { kind: "ACCESS", pseudonym, ts: { gte: windowStart() }, decision: { not: "ALLOW" } } });
+  return prisma.logEntry.count({
+    where: { kind: "ACCESS", pseudonym, ts: { gte: windowStart() }, decision: { not: "ALLOW" }, NOT: { reasonCode: { in: NOT_A_STRIKE } } },
+  });
+}
+
+function isLock(a: { kind: string; message: string }) {
+  return a.kind === "REPEATED_FAILURES" || LEGACY_LOCK_MESSAGES.includes(a.message);
+}
+
+/** Close repeated-failure locks older than LOCK_MINUTES. */
+export async function expireLocks() {
+  await prisma.alert.updateMany({
+    where: {
+      status: "OPEN",
+      ts: { lt: new Date(Date.now() - CONFIG.LOCK_MINUTES * 60_000) },
+      OR: [{ kind: "REPEATED_FAILURES" }, { message: { in: LEGACY_LOCK_MESSAGES } }],
+    },
+    data: { status: "ACK", ackBy: `auto-unlocked after ${CONFIG.LOCK_MINUTES} min` },
+  });
 }
 
 export async function raiseAlert(gateId: string | null, pseudonym: string | null, kind: string, message: string) {
@@ -187,9 +221,9 @@ export async function decideScan(raw: string, gateId: string, guard: { id: strin
     const m = await prisma.movement.create({ data: { identityId: o.identity.id, direction, gateId, guardEmail: guard.email, ts: now, logSeq: entry.seq } });
     await prisma.identity.update({ where: { id: o.identity.id }, data: { presence: direction, presenceAt: now } });
     movementId = m.id;
-  } else if (o.decision === "DENY_SUSPICIOUS") {
+  } else if (NEEDS_ADMIN.includes(o.reasonCode)) {
     await raiseAlert(gateId, o.pseudonym, "SUSPICIOUS", `Suspicious scan (${o.reasonCode})`);
-  } else if (o.pseudonym && (await recentFailures(o.pseudonym)) >= CONFIG.SUSPICIOUS_PER_CREDENTIAL) {
+  } else if (o.pseudonym && !NOT_A_STRIKE.includes(o.reasonCode) && (await recentFailures(o.pseudonym)) >= CONFIG.SUSPICIOUS_PER_CREDENTIAL) {
     await raiseAlert(gateId, o.pseudonym, "REPEATED_FAILURES", `${CONFIG.SUSPICIOUS_PER_CREDENTIAL}+ failed scans in ${CONFIG.SUSPICIOUS_WINDOW_MIN} min`);
   }
   await setGateDisplay(gateId, o.decision, direction);
@@ -205,5 +239,6 @@ export async function decideScan(raw: string, gateId: string, guard: { id: strin
     gateName: gate.name,
     at: new Date().toISOString(),
     liveColour: liveColour(),
+    reason: reasonText(o.reasonCode, o.unlockAt),
   };
 }

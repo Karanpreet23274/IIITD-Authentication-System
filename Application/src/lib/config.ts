@@ -13,6 +13,8 @@ export const CONFIG = {
   /** Repeated-failure detection. */
   SUSPICIOUS_WINDOW_MIN: 5,
   SUSPICIOUS_PER_CREDENTIAL: 3,
+  /** A lock from repeated failures clears itself after this long. Copied/reused QRs still need an admin. */
+  LOCK_MINUTES: num(process.env.LOCK_MINUTES, 5),
   /** How long entry/exit records are kept. */
   RETENTION_DAYS: num(process.env.RETENTION_DAYS, 365),
   PHOTO_URL_SECONDS: 60,
